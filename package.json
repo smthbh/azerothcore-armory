@@ -46,7 +46,7 @@
 		"html-entities": "^2.3.3",
 		"mkdirp": "^1.0.4",
 		"morgan": "^1.10.0",
-		"mysql2": "^2.3.3",
+		"mysql2": "^3.9.8",
 		"node-fetch": "^2.6.7",
 		"pako": "^2.0.4",
 		"pretty-ms": "^7.0.1",
