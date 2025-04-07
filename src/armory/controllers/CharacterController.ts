@@ -257,6 +257,31 @@ export class CharacterController {
 		});
 	}
 
+	public async skills(req: express.Request, res: express.Response, next: express.NextFunction): Promise<void> {
+		const realmName = req.params.realm;
+		const charName = req.params.name;
+
+		const realm = this.armory.getRealm(realmName);
+		if (realm === undefined) {
+			// Could not find realm
+			return next(404);
+		}
+
+		const charData = await this.getCharacterData(realm, charName);
+		if (charData === null) {
+			// Could not find character
+			return next(404);
+		}
+
+		res.render("character-skills.hbs", {
+			title: `Armory - ${charData.name} - Skills`,
+			...this.makeSharedDataObject(realm, charData),
+			data: {
+				skills: await this.getSkills(realm.name, charData.guid),
+			},
+		});
+	}
+
 	public async achievements(req: express.Request, res: express.Response, next: express.NextFunction): Promise<void> {
 		const realmName = req.params.realm;
 		const charName = req.params.name;
@@ -966,6 +991,25 @@ export class CharacterController {
 		}
 
 		return talents;
+	}
+
+	private async getSkills(realm: string, character: number): Promise<number[][]> {
+		const [rows] = await this.armory.getCharactersDb(realm).query({
+			sql: `
+				SELECT skill, value, max
+				FROM character_skills
+				WHERE guid = ?
+			`,
+			values: [character],
+			timeout: this.armory.config.dbQueryTimeout,
+		});
+
+		const skills: number[][] = [[], []];
+		for (const row of rows as RowDataPacket[]) {
+			skills[0].push(row.skill, row.value, row.max);
+		}
+
+		return skills;
 	}
 
 	private async getTalentTrees(classId: number) {
