@@ -67,7 +67,8 @@
 }
 
 .skills-table {
-	width: 33%; /* Ensures all tables take up the full width of the container */
+	max-width: 500px; /* Maximum width for the table */
+	width: 100%; /* Allows the table to shrink responsively */
 }
 
 .skills-table table {
