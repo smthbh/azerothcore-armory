@@ -74,6 +74,7 @@ interface IArenaTeam {
 
 interface ISkills {
 	id: number;
+	categoryId: number
 	skill: string;
 	value: number;
 	max: number ;
@@ -285,12 +286,24 @@ export class CharacterController {
 			// Could not find character
 			return next(404);
 		}
-
+		const skills = await this.getSkills(realm.name, charData.guid);
+		const professions = skills.filter((skill) => skill.categoryId === 11);
+		const secondarySkills = skills.filter((skill) => skill.categoryId === 9);
+		const weaponSkills = skills.filter((skill) => skill.categoryId === 6);
+		const classSkills = skills.filter((skill) => skill.categoryId === 7);
+		const armorSkills = skills.filter((skill) => skill.categoryId === 8);
+		const languages = skills.filter((skill) => skill.categoryId === 10);
 		res.render("character-skills.hbs", {
 			title: `Armory - ${charData.name} - Skills`,
 			...this.makeSharedDataObject(realm, charData),
 			data: {
-				skills: await this.getSkills(realm.name, charData.guid),
+				skills: skills,
+				professions: professions,
+				secondarySkills: secondarySkills,
+				weaponSkills: weaponSkills,
+				classSkills: classSkills,
+				armorSkills: armorSkills,
+				languages: languages,
 			},
 		});
 	}
@@ -1017,10 +1030,11 @@ export class CharacterController {
 			timeout: this.armory.config.dbQueryTimeout,
 		});
 
-		const skills: { id: number, skill: string; value: number; max: number }[] = [];
+		const skills: { id: number, categoryId: number, skill: string; value: number; max: number }[] = [];
 		for (const row of rows as RowDataPacket[]) {
 			skills.push({
 				id: row.skill,
+				categoryId: this.skillById[row.skill].categoryId,
 				skill: this.skillById[row.skill].name,
 				value: row.value,
 				max: row.max,
