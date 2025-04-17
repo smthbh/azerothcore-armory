@@ -68,7 +68,7 @@
 
 .skills-table {
 	max-width: 500px; /* Maximum width for the table */
-    width: 100%; /* Allows the table to shrink responsively */
+	width: 100%; /* Allows the table to shrink responsively */
 }
 
 .skills-table table {
