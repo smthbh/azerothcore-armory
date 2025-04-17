@@ -4,7 +4,7 @@ import { RowDataPacket } from "mysql2/promise";
 import { Armory } from "../Armory";
 import { IRealmConfig } from "../Config";
 import { IEmblem, Utils } from "../Utils";
-import { IAchievement as IAchievementDbc } from "../data/DbcReader";
+import { IAchievement as IAchievementDbc, ISkillDbc } from "../data/DbcReader";
 
 interface ICharacterData {
 	guid: number;
@@ -72,6 +72,13 @@ interface IArenaTeam {
 	emblem?: IEmblem;
 }
 
+interface ISkills {
+	id: number;
+	skill: string;
+	value: number;
+	max: number ;
+}
+
 const ItemClassGem = 3;
 const SpellMechanicMounted = 21;
 const RaceDisplayName = {
@@ -108,6 +115,7 @@ export class CharacterController {
 	private itemSocketBonuses: { [key: number]: number };
 	private mountSpells: number[];
 	private mountBySpellId: { [key: number]: IMount };
+	private skillById: { [key: number]: ISkillDbc };
 	private achievementById: { [key: number]: IAchievementDbc };
 
 	public constructor(armory: Armory) {
@@ -179,6 +187,11 @@ export class CharacterController {
 		this.achievementById = {};
 		for await (const achievement of this.armory.dbc.achievement()) {
 			this.achievementById[achievement.id] = achievement;
+		}
+
+		this.skillById = {};
+		for await (const skill of this.armory.dbc.skill()) {
+			this.skillById[skill.id] = skill;
 		}
 	}
 
@@ -993,7 +1006,7 @@ export class CharacterController {
 		return talents;
 	}
 
-	private async getSkills(realm: string, character: number): Promise<number[][]> {
+	private async getSkills(realm: string, character: number): Promise<ISkills[]> {
 		const [rows] = await this.armory.getCharactersDb(realm).query({
 			sql: `
 				SELECT skill, value, max
@@ -1004,9 +1017,14 @@ export class CharacterController {
 			timeout: this.armory.config.dbQueryTimeout,
 		});
 
-		const skills: number[][] = [[], []];
+		const skills: { id: number, skill: string; value: number; max: number }[] = [];
 		for (const row of rows as RowDataPacket[]) {
-			skills[0].push(row.skill, row.value, row.max);
+			skills.push({
+				id: row.skill,
+				skill: this.skillById[row.skill].name,
+				value: row.value,
+				max: row.max,
+			});
 		}
 
 		return skills;
