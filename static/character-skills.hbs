@@ -1,0 +1,35 @@
+<link rel="stylesheet" type="text/css" href="{{websiteRoot}}/css/character-talents.css">
+{{> icons }}
+<script type="application/javascript">
+    const aowow_tooltips = { "renamelinks": true, };
+</script>
+
+{{> character-header }}
+
+<div class="skills-table">
+    <h2 class="is-size-4">Character Skills</h2>
+    <table class="table is-striped is-hoverable is-fullwidth">
+        <thead>
+            <tr>
+                {{!-- <th>Skill ID</th> --}}
+				<th>Skill Name</th>
+                <th>Skill Value</th>
+                <th>Max Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each data.skills}}
+            <tr>
+                {{!-- <td>{{this.id}}</td> --}}
+				<td>{{this.skill}}</td>
+                <td>{{this.value}}</td>
+                <td>{{this.max}}</td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+</div>
+
+<script type="application/javascript">
+    // Add any additional JavaScript logic if needed
+</script>

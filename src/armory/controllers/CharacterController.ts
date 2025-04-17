@@ -4,7 +4,7 @@ import { RowDataPacket } from "mysql2/promise";
 import { Armory } from "../Armory";
 import { IRealmConfig } from "../Config";
 import { IEmblem, Utils } from "../Utils";
-import { IAchievement as IAchievementDbc } from "../data/DbcReader";
+import { IAchievement as IAchievementDbc, ISkillDbc } from "../data/DbcReader";
 
 interface ICharacterData {
 	guid: number;
@@ -72,6 +72,13 @@ interface IArenaTeam {
 	emblem?: IEmblem;
 }
 
+interface ISkills {
+	id: number;
+	skill: string;
+	value: number;
+	max: number ;
+}
+
 const ItemClassGem = 3;
 const SpellMechanicMounted = 21;
 const RaceDisplayName = {
@@ -108,6 +115,7 @@ export class CharacterController {
 	private itemSocketBonuses: { [key: number]: number };
 	private mountSpells: number[];
 	private mountBySpellId: { [key: number]: IMount };
+	private skillById: { [key: number]: ISkillDbc };
 	private achievementById: { [key: number]: IAchievementDbc };
 
 	public constructor(armory: Armory) {
@@ -179,6 +187,11 @@ export class CharacterController {
 		this.achievementById = {};
 		for await (const achievement of this.armory.dbc.achievement()) {
 			this.achievementById[achievement.id] = achievement;
+		}
+
+		this.skillById = {};
+		for await (const skill of this.armory.dbc.skill()) {
+			this.skillById[skill.id] = skill;
 		}
 	}
 
@@ -253,6 +266,31 @@ export class CharacterController {
 				talents: await this.getTalents(realm.name, charData.guid),
 				trees: await this.getTalentTrees(charData.class),
 				glyphs: await this.getGlyphs(realm.name, charData.guid),
+			},
+		});
+	}
+
+	public async skills(req: express.Request, res: express.Response, next: express.NextFunction): Promise<void> {
+		const realmName = req.params.realm;
+		const charName = req.params.name;
+
+		const realm = this.armory.getRealm(realmName);
+		if (realm === undefined) {
+			// Could not find realm
+			return next(404);
+		}
+
+		const charData = await this.getCharacterData(realm, charName);
+		if (charData === null) {
+			// Could not find character
+			return next(404);
+		}
+
+		res.render("character-skills.hbs", {
+			title: `Armory - ${charData.name} - Skills`,
+			...this.makeSharedDataObject(realm, charData),
+			data: {
+				skills: await this.getSkills(realm.name, charData.guid),
 			},
 		});
 	}
@@ -966,6 +1004,30 @@ export class CharacterController {
 		}
 
 		return talents;
+	}
+
+	private async getSkills(realm: string, character: number): Promise<ISkills[]> {
+		const [rows] = await this.armory.getCharactersDb(realm).query({
+			sql: `
+				SELECT skill, value, max
+				FROM character_skills
+				WHERE guid = ?
+			`,
+			values: [character],
+			timeout: this.armory.config.dbQueryTimeout,
+		});
+
+		const skills: { id: number, skill: string; value: number; max: number }[] = [];
+		for (const row of rows as RowDataPacket[]) {
+			skills.push({
+				id: row.skill,
+				skill: this.skillById[row.skill].name,
+				value: row.value,
+				max: row.max,
+			});
+		}
+
+		return skills;
 	}
 
 	private async getTalentTrees(classId: number) {

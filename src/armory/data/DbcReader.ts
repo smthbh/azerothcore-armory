@@ -65,6 +65,16 @@ export interface IMountXDisplayDbc {
 	mountId: number;
 }
 
+export interface ISkillDbc {
+	id: number;
+	categoryId: number;
+	skillCostId: number;
+	name: string;
+	spellIcon: number;
+	altVerb: string;
+	canLink: number;
+}
+
 export interface ISpellDbc {
 	id: number;
 	mechanic: number;
@@ -313,6 +323,7 @@ export const DbcFiles = {
 	itemDisplayInfo: path.join(dir, "ItemDisplayInfo_3.3.5_12340.csv"),
 	mount: path.join(dir, "Mount_9.2.0_41462.csv"),
 	mountDisplay: path.join(dir, "MountXDisplay_9.2.0_41462.csv"),
+	skill: path.join(dir, "Skills.csv"),
 	spell: path.join(dir, "Spell_3.3.5_12340.csv"),
 	spellItemEnchantment: path.join(dir, "SpellItemEnchantment_3.3.5_12340.csv"),
 	spellIcon: path.join(dir, "SpellIcon_3.3.5_12340.csv"),
@@ -331,6 +342,7 @@ const dbcFields = {
 	itemDisplayInfo: ["id", "inventoryIcon0"],
 	mount: ["id", "sourceSpellId"],
 	mountDisplay: ["id", "creatureDisplayInfoId", "mountId"],
+	skill: ["id", "name"],
 	spell: ["id", "mechanic", "spellIconId"],
 	spellItemEnchantment: ["id", "srcItemId"],
 	spellIcon: ["id", "textureFilename"],
@@ -361,6 +373,7 @@ export class DbcManager {
 	private _itemDisplayInfo: IItemDisplayInfoDbc[];
 	private _mount: IMountDbc[];
 	private _mountDisplay: IMountXDisplayDbc[];
+	private _skill: ISkillDbc[];
 	private _spell: ISpellDbc[];
 	private _spellItemEnchantment: ISpellItemEnchantmentDbc[];
 	private _spellIcon: ISpellIcon[];
@@ -384,6 +397,7 @@ export class DbcManager {
 		this._itemDisplayInfo = await this.read<IItemDisplayInfoDbc>(DbcFiles.itemDisplayInfo, dbcFields.itemDisplayInfo).toArray();
 		this._mount = await this.read<IMountDbc>(DbcFiles.mount, dbcFields.mount).toArray();
 		this._mountDisplay = await this.read<IMountXDisplayDbc>(DbcFiles.mountDisplay, dbcFields.mountDisplay).toArray();
+		this._skill = await this.read<ISkillDbc>(DbcFiles.skill).toArray();
 		this._spell = await this.read<ISpellDbc>(DbcFiles.spell, dbcFields.spell).toArray();
 		this._spellItemEnchantment = await this.read<ISpellItemEnchantmentDbc>(
 			DbcFiles.spellItemEnchantment,
@@ -432,6 +446,10 @@ export class DbcManager {
 
 	public mountDisplay() {
 		return this.getLoadedDataOrRead(DbcFiles.mountDisplay, this._mountDisplay, dbcFields.mountDisplay);
+	}
+
+	public skill() {
+		return this.getLoadedDataOrRead(DbcFiles.skill, this._skill, dbcFields.skill);
 	}
 
 	public spell() {
