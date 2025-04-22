@@ -396,7 +396,7 @@ export class CharacterController {
 		if (value < -6000) return -6000; // These are probably not correct, but I don't have a character to test against
 		if (value < -3000) return -3000; // These are probably not correct, but I don't have a character to test against
 		if (value < 0) return 0; // These are probably not correct, but I don't have a character to test against
-		if (value < 1000) return 1000; // These are probably not correct, but I don't have a character to test against
+		if (value < 1000) return 3000;
 		if (value < 6000) return 6000;
 		if (value < 12000) return 12000;
 		if (value < 21000) return 21000;
@@ -407,7 +407,7 @@ export class CharacterController {
 		if (value < -6000) return value + 3000; // These are probably not correct, but I don't have a character to test against
 		if (value < -3000) return value; // These are probably not correct, but I don't have a character to test against
 		if (value < 0) return value; // These are probably not correct, but I don't have a character to test against
-		if (value < 1000) return value - 1000; // These are probably not correct, but I don't have a character to test against
+		if (value < 1000) return value + 2000; // These are probably not correct, but I don't have a character to test against
 		if (value < 6000) return value - 1000;
 		if (value < 12000) return value - 5900; // For some reason I needed to remove an extra 100 from this one to get it to match the client
 		if (value < 21000) return value - 16900; // For some reason I needed to remove an extra 100 from this one to get it to match the client
