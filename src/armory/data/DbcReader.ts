@@ -112,6 +112,12 @@ export interface ITalentTab {
 	classMask: number;
 }
 
+export interface IFactionDbc {
+	id: number;
+	reputationId: number;
+	name: string;
+}
+
 interface IAsyncGeneratorWithArrayMethods<T> {
 	[Symbol.asyncIterator](): AsyncGenerator<T>;
 	toArray(): Promise<T[]>;
@@ -315,6 +321,7 @@ const dir = path.join(process.cwd(), "data");
 export const DbcFiles = {
 	achievement: path.join(dir, "Achievement_3.3.5_12340.csv"),
 	achievementCategory: path.join(dir, "AchievementCategory_3.3.5_12340.csv"),
+	faction: path.join(dir, "Factions.csv"),
 	glyphProperties: path.join(dir, "GlyphProperties_3.3.5_12340.csv"),
 	item: path.join(dir, "Item_3.3.5_12340.csv"),
 	itemRetail: path.join(dir, "Item_9.2.0_41462.csv"),
@@ -360,12 +367,14 @@ const dbcFields = {
 		"prereqRank0",
 	],
 	talentTab: ["id", "nameLang0", "spellIconId", "classMask"],
+	faction: ["id", "reputationId", "name"],
 };
 
 export class DbcManager {
 	private _achievement: IAchievement[];
 	private _achievementCategory: IAchievementCategory[];
 	private _glyphProperties: IGlyphProperties[];
+	private _faction: IFactionDbc[];
 	private _item: IItemDbc[];
 	private _itemRetail: IItemRetailDbc[];
 	private _itemAppearance: IItemAppearanceDbc[];
@@ -414,6 +423,10 @@ export class DbcManager {
 
 	public achievementCategory() {
 		return this.getLoadedDataOrRead(DbcFiles.achievementCategory, this._achievementCategory, dbcFields.achievementCategory);
+	}
+
+	public faction() {
+		return this.getLoadedDataOrRead(DbcFiles.faction, this._faction, dbcFields.faction);
 	}
 
 	public glyphProperties() {

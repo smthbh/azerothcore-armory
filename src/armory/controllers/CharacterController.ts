@@ -308,6 +308,111 @@ export class CharacterController {
 		});
 	}
 
+	public async reputation(req: express.Request, res: express.Response, next: express.NextFunction): Promise<void> {
+		const realmName = req.params.realm;
+		const charName = req.params.name;
+
+		const realm = this.armory.getRealm(realmName);
+		if (realm === undefined) {
+			return next(404);
+		}
+
+		const charData = await this.getCharacterData(realm, charName);
+		if (charData === null) {
+			return next(404);
+		}
+
+		const reputations = await this.getReputations(realm.name, charData.guid);
+		// Group reputations by expansion/category
+		const classicReps = reputations.filter(rep => rep.expansionId === 0);
+		const tbcReps = reputations.filter(rep => rep.expansionId === 1);
+		const wotlkReps = reputations.filter(rep => rep.expansionId === 2);
+
+		res.render("character-reputation.hbs", {
+			title: `Armory - ${charData.name} - Reputation`,
+			...this.makeSharedDataObject(realm, charData),
+			data: {
+				classic: classicReps,
+				tbc: tbcReps,
+				wotlk: wotlkReps
+			},
+		});
+	}
+
+	private async getReputations(realm: string, character: number): Promise<any[]> {
+		const [rows] = await this.armory.getCharactersDb(realm).query({
+			sql: `
+				SELECT faction, standing, flags
+				FROM character_reputation
+				WHERE guid = ? 
+				AND flags NOT IN (0, 4, 8)
+				AND standing != 0
+			`,
+			values: [character],
+			timeout: this.armory.config.dbQueryTimeout,
+		});
+
+		const reputations = [];
+		for (const row of rows as RowDataPacket[]) {
+			const factionInfo = await this.armory.dbc.faction().find(f => f.id === row.faction);
+			if (factionInfo && factionInfo.reputationId >= 0) {
+				reputations.push({
+					id: row.faction,
+					name: factionInfo.name,
+					standing: this.getReputationStanding(row.standing),
+					value: row.standing,
+					valueInGrade: this.getReputationInGrade(row.standing),
+					max: this.getReputationMax(row.standing),
+					expansionId: this.getExpansionId(row.faction)
+				});
+			}
+		}
+
+		return reputations;
+	}
+
+	private getReputationStanding(value: number): string {
+		if (value < -6000) return 'Hated'; // These are probably not correct, but I don't have a character to test against
+		if (value < -3000) return 'Hostile'; // These are probably not correct, but I don't have a character to test against
+		if (value < 0) return 'Unfriendly'; // These are probably not correct, but I don't have a character to test against
+		if (value < 1000) return 'Neutral'; // These are probably not correct, but I don't have a character to test against
+		if (value < 6000) return 'Friendly';
+		if (value < 19000) return 'Honored';
+		if (value < 40000) return 'Revered';
+		return 'Exalted'; // These are probably not correct, but I don't have a character to test against
+	}
+
+	private getReputationMax(value: number): number {
+		if (value < -6000) return -6000; // These are probably not correct, but I don't have a character to test against
+		if (value < -3000) return -3000; // These are probably not correct, but I don't have a character to test against
+		if (value < 0) return 0; // These are probably not correct, but I don't have a character to test against
+		if (value < 1000) return 1000; // These are probably not correct, but I don't have a character to test against
+		if (value < 6000) return 6000;
+		if (value < 12000) return 12000;
+		if (value < 21000) return 21000;
+		return 40000; // This might not be right, but I dont have an exalted character to test against
+	}
+
+	private getReputationInGrade(value: number): number {
+		if (value < -6000) return value + 3000; // These are probably not correct, but I don't have a character to test against
+		if (value < -3000) return value; // These are probably not correct, but I don't have a character to test against
+		if (value < 0) return value; // These are probably not correct, but I don't have a character to test against
+		if (value < 1000) return value - 1000; // These are probably not correct, but I don't have a character to test against
+		if (value < 6000) return value - 1000;
+		if (value < 12000) return value - 5900; // For some reason I needed to remove an extra 100 from this one to get it to match the client
+		if (value < 21000) return value - 16900; // For some reason I needed to remove an extra 100 from this one to get it to match the client
+		return value - 21100; // This might not be right, but I dont have an exalted character to test against
+	}
+
+	private getExpansionId(factionId: number): number {
+		// Classic factions
+		if (factionId < 900) return 0;
+		// TBC factions
+		if (factionId < 1100) return 1;
+		// WotLK factions
+		return 2;
+	}
+
 	public async achievements(req: express.Request, res: express.Response, next: express.NextFunction): Promise<void> {
 		const realmName = req.params.realm;
 		const charName = req.params.name;
