@@ -80,6 +80,16 @@ interface ISkills {
 	max: number ;
 }
 
+interface IReputation {
+	id: number;
+	name: string;
+	standing: string;
+	value: number;
+	valueInGrade: number;
+	max: number;
+	expansionId: number;
+}
+
 const ItemClassGem = 3;
 const SpellMechanicMounted = 21;
 const RaceDisplayName = {
@@ -339,7 +349,7 @@ export class CharacterController {
 		});
 	}
 
-	private async getReputations(realm: string, character: number): Promise<any[]> {
+	private async getReputations(realm: string, character: number): Promise<IReputation[]> {
 		const [rows] = await this.armory.getCharactersDb(realm).query({
 			sql: `
 				SELECT faction, standing, flags
