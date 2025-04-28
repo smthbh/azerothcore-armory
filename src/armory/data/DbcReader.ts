@@ -118,6 +118,13 @@ export interface IFactionDbc {
 	name: string;
 }
 
+export interface IAreas {
+	id: number;
+	zoneName: string;
+	mapId: number;
+	areaId: number;
+}
+
 interface IAsyncGeneratorWithArrayMethods<T> {
 	[Symbol.asyncIterator](): AsyncGenerator<T>;
 	toArray(): Promise<T[]>;
@@ -321,6 +328,7 @@ const dir = path.join(process.cwd(), "data");
 export const DbcFiles = {
 	achievement: path.join(dir, "Achievement_3.3.5_12340.csv"),
 	achievementCategory: path.join(dir, "AchievementCategory_3.3.5_12340.csv"),
+	areas: path.join(dir, "Areas.csv"),
 	faction: path.join(dir, "Factions.csv"),
 	glyphProperties: path.join(dir, "GlyphProperties_3.3.5_12340.csv"),
 	item: path.join(dir, "Item_3.3.5_12340.csv"),
@@ -341,6 +349,7 @@ export const DbcFiles = {
 const dbcFields = {
 	achievement: ["id", "faction", "titleLang0", "descriptionLang0", "category", "points", "flags", "iconId"],
 	achievementCategory: ["id", "parent", "nameLang0"],
+	areas: ["id", "zoneName", "mapId", "areaId"],
 	glyphProperties: ["id", "spellId"],
 	item: ["id", "classId", "subclassId", "displayInfoId", "inventoryType"],
 	itemRetail: ["id", "inventoryType"],
@@ -373,6 +382,7 @@ const dbcFields = {
 export class DbcManager {
 	private _achievement: IAchievement[];
 	private _achievementCategory: IAchievementCategory[];
+	private _areas: IAreas[];
 	private _glyphProperties: IGlyphProperties[];
 	private _faction: IFactionDbc[];
 	private _item: IItemDbc[];
@@ -395,6 +405,7 @@ export class DbcManager {
 			DbcFiles.achievementCategory,
 			dbcFields.achievementCategory,
 		).toArray();
+		this._areas = await this.read<IAreas>(DbcFiles.areas).toArray();
 		this._glyphProperties = await this.read<IGlyphProperties>(DbcFiles.glyphProperties, dbcFields.glyphProperties).toArray();
 		this._item = await this.read<IItemDbc>(DbcFiles.item, dbcFields.item).toArray();
 		this._itemRetail = await this.read<IItemRetailDbc>(DbcFiles.itemRetail, dbcFields.itemRetail).toArray();
@@ -425,6 +436,9 @@ export class DbcManager {
 		return this.getLoadedDataOrRead(DbcFiles.achievementCategory, this._achievementCategory, dbcFields.achievementCategory);
 	}
 
+	public areas() {
+		return this.getLoadedDataOrRead(DbcFiles.areas, this._areas);
+	}
 	public faction() {
 		return this.getLoadedDataOrRead(DbcFiles.faction, this._faction, dbcFields.faction);
 	}

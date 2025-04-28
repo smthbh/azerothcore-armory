@@ -4,7 +4,7 @@ import { RowDataPacket } from "mysql2/promise";
 import { Armory } from "../Armory";
 import { IRealmConfig } from "../Config";
 import { IEmblem, Utils } from "../Utils";
-import { IAchievement as IAchievementDbc, ISkillDbc } from "../data/DbcReader";
+import { IAchievement as IAchievementDbc, ISkillDbc, IAreas } from "../data/DbcReader";
 
 interface ICharacterData {
 	guid: number;
@@ -90,6 +90,15 @@ interface IReputation {
 	expansionId: number;
 }
 
+interface IQuest {
+    id: number;
+    title: string;
+    status: 'Completed' | 'In Progress';
+    level: number;
+    questLevel: number;
+    questSortID: number;
+}
+
 const ItemClassGem = 3;
 const SpellMechanicMounted = 21;
 const RaceDisplayName = {
@@ -119,6 +128,7 @@ const ClassDisplayName = {
 
 export class CharacterController {
 	private armory: Armory;
+	private areaById: { [key: number]: IAreas };
 	private itemInventoryTypes: { [key: number]: number };
 	private itemIcons: { [key: number]: number };
 	private gemItems: { [key: number]: boolean };
@@ -203,6 +213,10 @@ export class CharacterController {
 		this.skillById = {};
 		for await (const skill of this.armory.dbc.skill()) {
 			this.skillById[skill.id] = skill;
+		}
+		this.areaById = {};
+		for await (const area of this.armory.dbc.areas()) {
+			this.areaById[area.id] = area;
 		}
 	}
 
@@ -349,6 +363,44 @@ export class CharacterController {
 		});
 	}
 
+	public async quests(req: express.Request, res: express.Response, next: express.NextFunction): Promise<void> {
+		const realmName = req.params.realm;
+		const charName = req.params.name;
+
+		const realm = this.armory.getRealm(realmName);
+		if (realm === undefined) {
+			return next(404);
+		}
+
+		const charData = await this.getCharacterData(realm, charName);
+		if (charData === null) {
+			return next(404);
+		}
+
+		const quests = await this.getQuests(realm.name, charData.guid);
+		
+		// Group quests by zone/profession
+		const questsByCategory = quests.reduce((acc, quest) => {
+			const category = quest.questSortID > 0 ? 
+				this.getZoneName(quest.questSortID): 
+				this.getProfessionName(quest.questSortID);
+			
+			if (!acc[category]) {
+				acc[category] = [];
+			}
+			acc[category].push(quest);
+			return acc;
+		}, {});
+
+		res.render("character-quests.hbs", {
+			title: `Armory - ${charData.name} - Quests`,
+			...this.makeSharedDataObject(realm, charData),
+			data: {
+				categories: questsByCategory
+			},
+		});
+	}
+
 	private async getReputations(realm: string, character: number): Promise<IReputation[]> {
 		const [rows] = await this.armory.getCharactersDb(realm).query({
 			sql: `
@@ -421,6 +473,145 @@ export class CharacterController {
 		if (factionId < 1100) return 1;
 		// WotLK factions
 		return 2;
+	}
+
+	private async getQuests(realm: string, character: number): Promise<IQuest[]> {
+		// Get completed and rewarded quests
+		const [completedRows] = await this.armory.getCharactersDb(realm).query({
+			sql: `
+				SELECT quest FROM (
+					SELECT quest FROM character_queststatus 
+					WHERE guid = ? AND status = 1
+					UNION
+					SELECT quest FROM character_queststatus_rewarded 
+					WHERE guid = ?
+				) AS completed_quests
+			`,
+			values: [character, character],
+			timeout: this.armory.config.dbQueryTimeout,
+		});
+
+		// Get in progress quests
+		const [inProgressRows] = await this.armory.getCharactersDb(realm).query({
+			sql: `
+				SELECT quest 
+				FROM character_queststatus
+				WHERE guid = ? AND status = 3
+			`,
+			values: [character],
+			timeout: this.armory.config.dbQueryTimeout,
+		});
+
+		const quests: IQuest[] = [];
+		
+		// Process completed quests
+		for (const row of completedRows as RowDataPacket[]) {
+			const questInfo = await this.getQuestInfo(row.quest);
+			if (questInfo) {
+				quests.push({
+					id: row.quest,
+					title: questInfo.title,
+					status: 'Completed',
+					level: questInfo.minLevel,
+					questLevel: questInfo.questLevel,
+					questSortID: questInfo.questSortID
+				});
+			}
+		}
+
+		// Process in progress quests
+		for (const row of inProgressRows as RowDataPacket[]) {
+			const questInfo = await this.getQuestInfo(row.quest);
+			if (questInfo) {
+				quests.push({
+					id: row.quest,
+					title: questInfo.title,
+					status: 'In Progress',
+					level: questInfo.minLevel,
+					questLevel: questInfo.questLevel,
+					questSortID: questInfo.questSortID
+				});
+			}
+		}
+
+		return quests;
+	}
+
+	private async getQuestInfo(questId: number): Promise<any> {
+		const [rows] = await this.armory.worldDb.query({
+			sql: `
+				SELECT ID, LogTitle as title, MinLevel as minLevel, QuestLevel as questLevel, QuestSortID as questSortID
+				FROM quest_template
+				WHERE ID = ?
+			`,
+			values: [questId],
+			timeout: this.armory.config.dbQueryTimeout,
+		});
+
+		return rows[0];
+	}
+
+	private getZoneName(zoneId: number): string {
+		this.areaById[zoneId]?.zoneName
+		return this.areaById[zoneId]?.zoneName || `Zone ${zoneId}`;
+	}
+
+	private getProfessionName(professionId: number): string {
+		const questTypes = {
+			// Negative IDs (Classes and Professions)
+			// Classes
+			"-61": "Warlock",
+			"-81": "Warrior",
+			"-82": "Shaman",
+			"-141": "Paladin",
+			"-161": "Mage",
+			"-162": "Rogue",
+			"-261": "Hunter",
+			"-262": "Priest",
+			"-263": "Druid",
+			"-372": "Death Knight",
+			// Professions
+			"-24": "Herbalism",
+			"-101": "Fishing",
+			"-121": "Blacksmithing",
+			"-181": "Alchemy",
+			"-182": "Leatherworking",
+			"-201": "Engineering",
+			"-264": "Tailoring",
+			"-304": "Cooking",
+			"-324": "First Aid",
+			"-371": "Inscription",
+			"-373": "Jewelcrafting",
+			"-762": "Riding",
+			 // Misc
+			"-1": "Epic",
+			"-21": "Wailing Caverns",
+			"-22": "Seasonal",
+			"-23": "Undercity",
+			"-25": "Battlegrounds",
+			"-41": "Uldaman",
+			"-221": "Treasure Map",
+			"-241": "Tournament",
+			"-284": "Special",
+			"-344": "Legendary",
+			"-364": "Darkmoon Faire",
+			"-365": "Ahn'Qiraj War",
+			"-366": "Lunar Festival",
+			"-367": "Reputation",
+			"-368": "Invasion",
+			"-369": "Midsummer",
+			"-370": "Brewfest",
+			"-374": "Noblegarden",
+			"-375": "Pilgrim's Bounty",
+			"-376": "Love is in the Air"
+		};
+		return questTypes[professionId] || `Category ${professionId}`;
+	}
+
+	private getQuestExpansionId(questLevel: number): number {
+		if (questLevel <= 60) return 0; // Classic
+		if (questLevel <= 70) return 1; // TBC
+		return 2; // WotLK
 	}
 
 	public async achievements(req: express.Request, res: express.Response, next: express.NextFunction): Promise<void> {
