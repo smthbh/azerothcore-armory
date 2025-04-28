@@ -94,7 +94,7 @@ interface IQuest {
 	id: number;
 	title: string;
 	status: 'Completed' | 'In Progress';
-	level: number;
+	minLevel: number;
 	questLevel: number;
 	questSortID: number;
 }
@@ -512,7 +512,7 @@ export class CharacterController {
 					id: row.quest,
 					title: questInfo.title,
 					status: 'Completed',
-					level: questInfo.minLevel,
+					minLevel: questInfo.minLevel,
 					questLevel: questInfo.questLevel,
 					questSortID: questInfo.questSortID
 				});
@@ -527,7 +527,7 @@ export class CharacterController {
 					id: row.quest,
 					title: questInfo.title,
 					status: 'In Progress',
-					level: questInfo.minLevel,
+					minLevel: questInfo.minLevel,
 					questLevel: questInfo.questLevel,
 					questSortID: questInfo.questSortID
 				});
@@ -537,7 +537,7 @@ export class CharacterController {
 		return quests;
 	}
 
-	private async getQuestInfo(questId: number): Promise<any> {
+	private async getQuestInfo(questId: number): Promise<IQuest> {
 		const [rows] = await this.armory.worldDb.query({
 			sql: `
 				SELECT ID, LogTitle as title, MinLevel as minLevel, QuestLevel as questLevel, QuestSortID as questSortID
