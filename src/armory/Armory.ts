@@ -101,6 +101,12 @@ export class Armory {
 				helpers: {
 					// eslint-disable-next-line @typescript-eslint/no-var-requires
 					...require("handlebars-helpers")(),
+					eq: function(a: any, b: any) {
+						return a === b;
+					},
+					hasInProgressQuests: function(quests: any[]) {
+						return quests.some(quest => quest.status === 'In Progress');
+					}
 				},
 			}),
 		);
@@ -155,6 +161,7 @@ export class Armory {
 		app.get("/character/:realm/:character/achievements/data", this.wrapRoute(charsController.achievementsData.bind(charsController)));
 		app.get("/character/:realm/:name/pvp", this.wrapRoute(charsController.pvp.bind(charsController)));
 		app.get("/character/:realm/:name/reputation", this.wrapRoute(charsController.reputation.bind(charsController)));
+		app.get("/character/:realm/:name/quests", this.wrapRoute(charsController.quests.bind(charsController)));
 
 		const guildsController = new GuildController(this);
 		app.get("/guild/:realm/:name", this.wrapRoute(guildsController.guild.bind(guildsController)));
