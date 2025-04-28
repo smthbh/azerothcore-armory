@@ -102,3 +102,7 @@
 .category-header.expanded .collapse-icon {
     transform: rotate(180deg);
 }
+
+.category-header:not(.expanded) .collapse-icon {
+    transform: rotate(-90deg);
+}

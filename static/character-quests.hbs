@@ -4,18 +4,24 @@
     const aowow_tooltips = { "renamelinks": true, };
 </script>
 
-<script type="application/javascript" src="{{aowow}}/static/widgets/power.js"></script>
-
 {{> character-header }}
 
 {{#each data.categories as |quests category|}}
 <div class="quests-table" style="margin-bottom: 20px;">
+    {{#if (hasInProgressQuests quests)}}
+    <h2 class="is-size-4 category-header collapsible expanded">
+    {{else}}
     <h2 class="is-size-4 category-header collapsible">
+    {{/if}}
         {{category}}
         <span class="collapse-icon">▼</span>
     </h2>
     
+    {{#if (hasInProgressQuests quests)}}
     <div class="category-content expanded">
+    {{else}}
+    <div class="category-content">
+    {{/if}}
         <!-- In Progress Quests -->
         <h3 class="is-size-5 collapsible">
             In Progress

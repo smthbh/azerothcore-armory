@@ -101,6 +101,12 @@ export class Armory {
 				helpers: {
 					// eslint-disable-next-line @typescript-eslint/no-var-requires
 					...require("handlebars-helpers")(),
+					eq: function(a: any, b: any) {
+						return a === b;
+					},
+					hasInProgressQuests: function(quests: any[]) {
+						return quests.some(quest => quest.status === 'In Progress');
+					}
 				},
 			}),
 		);
