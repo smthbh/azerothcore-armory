@@ -91,12 +91,12 @@ interface IReputation {
 }
 
 interface IQuest {
-    id: number;
-    title: string;
-    status: 'Completed' | 'In Progress';
-    level: number;
-    questLevel: number;
-    questSortID: number;
+	id: number;
+	title: string;
+	status: 'Completed' | 'In Progress';
+	level: number;
+	questLevel: number;
+	questSortID: number;
 }
 
 const ItemClassGem = 3;
@@ -552,7 +552,7 @@ export class CharacterController {
 	}
 
 	private getZoneName(zoneId: number): string {
-		this.areaById[zoneId]?.zoneName
+		this.areaById[zoneId]?.zoneName;
 		return this.areaById[zoneId]?.zoneName || `Zone ${zoneId}`;
 	}
 
@@ -583,7 +583,7 @@ export class CharacterController {
 			"-371": "Inscription",
 			"-373": "Jewelcrafting",
 			"-762": "Riding",
-			 // Misc
+			// Misc
 			"-1": "Epic",
 			"-21": "Wailing Caverns",
 			"-22": "Seasonal",
