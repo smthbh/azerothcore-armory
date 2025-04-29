@@ -450,6 +450,10 @@ export class CharacterController {
 				const existingQuest = categories[category].find(q => q.id === quest.id);
 				if (existingQuest) {
 					existingQuest[source] = quest.status;
+					// Remove quest if both characters have completed it
+					if (existingQuest.char1Status === 'Completed' && existingQuest.char2Status === 'Completed') {
+						categories[category] = categories[category].filter(q => q.id !== quest.id);
+					}
 				} else {
 					categories[category].push({
 						id: quest.id,
