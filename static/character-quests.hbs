@@ -132,7 +132,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const selected = compareSelect.value;
         if (selected) {
             const [realm, name] = selected.split('/');
-            window.location.href = `${window.location.pathname}/compare/${realm}/${name}`;
+            const sanitizedRealm = encodeURIComponent(realm);
+            const sanitizedName = encodeURIComponent(name);
+            window.location.href = `${window.location.pathname}/compare/${sanitizedRealm}/${sanitizedName}`;
         }
     });
 });

@@ -120,7 +120,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const [realm, name] = selected.split('/');
             // Get the base path by removing everything after /quests/compare/
             const basePath = window.location.pathname.split('/quests/compare/')[0];
-            window.location.href = `${basePath}/quests/compare/${realm}/${name}`;
+            const safeRealm = encodeURIComponent(realm);
+            const safeName = encodeURIComponent(name);
+            window.location.href = `${basePath}/quests/compare/${safeRealm}/${safeName}`;
         }
     });
 });
