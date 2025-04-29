@@ -67,7 +67,7 @@
                     {{#each quests}}
                     {{#if (eq this.status "In Progress")}}
                     <tr>
-                        <td class="quest-name"><a href="{{@root.aowow}}/?quest={{this.id}}">{{this.title}}</a></td>
+                        <td class="quest-name"><a href="{{@root.wowhead}}/quest={{this.id}}">{{this.title}}</a></td>
                         <td class="quest-level">{{this.questLevel}}</td>
                         <td class="quest-status {{this.status}}">{{this.status}}</td>
                     </tr>
@@ -95,7 +95,7 @@
                     {{#each quests}}
                     {{#if (eq this.status "Completed")}}
                     <tr>
-                        <td class="quest-name"><a href="{{@root.aowow}}/?quest={{this.id}}">{{this.title}}</a></td>
+                        <td class="quest-name"><a href="{{@root.wowhead}}/quest={{this.id}}">{{this.title}}</a></td>
                         <td class="quest-level">{{this.questLevel}}</td>
                         <td class="quest-status {{this.status}}">{{this.status}}</td>
                     </tr>
