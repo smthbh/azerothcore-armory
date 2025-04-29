@@ -81,6 +81,7 @@ export class Armory {
 
 		const locals = {
 			aowow: this.config.aowowUrl,
+			wowhead: this.config.wowheadUrl,
 			websiteUrl: this.config.websiteUrl,
 			websiteName: this.config.websiteName,
 			websiteRoot: this.config.websiteRoot,
