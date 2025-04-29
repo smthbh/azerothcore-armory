@@ -67,6 +67,11 @@
 <div class="quests-table" style="margin-bottom: 20px;">
     <h2 class="is-size-4 category-header collapsible">
         {{@key}}
+        {{#with (getDiffCount this)}}
+            {{#if this}}
+                <span class="diff-count">({{this}} different)</span>
+            {{/if}}
+        {{/with}}
         <span class="collapse-icon">▼</span>
     </h2>
     

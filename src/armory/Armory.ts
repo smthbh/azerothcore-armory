@@ -114,6 +114,14 @@ export class Armory {
 						if (!quest.char2Status) return 'quest-missing-2';
 						if (quest.char1Status !== quest.char2Status) return 'quest-diff';
 						return '';
+					},
+					getDiffCount: function(quests: any[]): number {
+						return quests.reduce((count, quest) => {
+							if (!quest.char1Status && quest.char2Status) return count + 1;
+							if (quest.char1Status && !quest.char2Status) return count + 1;
+							if (quest.char1Status !== quest.char2Status) return count + 1;
+							return count;
+						}, 0);
 					}
 				},
 			}),
