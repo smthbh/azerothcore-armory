@@ -392,11 +392,95 @@ export class CharacterController {
 			return acc;
 		}, {});
 
+		// Get list of all characters
+		const allCharacters = await this.getAllCharacters(realm.name);
+
 		res.render("character-quests.hbs", {
 			title: `Armory - ${charData.name} - Quests`,
 			...this.makeSharedDataObject(realm, charData),
 			data: {
-				categories: questsByCategory
+				categories: questsByCategory,
+				otherCharacters: allCharacters.filter(c => c.guid !== charData.guid)
+			},
+		});
+	}
+
+	public async questsCompare(req: express.Request, res: express.Response, next: express.NextFunction): Promise<void> {
+		const realmName = req.params.realm;
+		const charName = req.params.name;
+		const otherRealmName = req.params.otherRealm;
+		const otherCharName = req.params.otherName;
+
+		const realm = this.armory.getRealm(realmName);
+		const otherRealm = this.armory.getRealm(otherRealmName);
+		if (realm === undefined || otherRealm === undefined) {
+			return next(404);
+		}
+
+		const charData = await this.getCharacterData(realm, charName);
+		const otherCharData = await this.getCharacterData(otherRealm, otherCharName);
+		if (charData === null || otherCharData === null) {
+			return next(404);
+		}
+
+		const charQuests = await this.getQuests(realm.name, charData.guid);
+		const otherQuests = await this.getQuests(otherRealm.name, otherCharData.guid);
+
+		// Group quests by category
+		interface IQuestComparison {
+			id: number;
+			title: string;
+			questLevel: number;
+			char1Status?: 'Completed' | 'In Progress';
+			char2Status?: 'Completed' | 'In Progress';
+		}
+
+		const categories: { [key: string]: IQuestComparison[] } = {};
+
+		const addQuestsToCategories = (quests: IQuest[], source: 'char1Status' | 'char2Status') => {
+			quests.forEach(quest => {
+				const category = quest.questSortID > 0 ? 
+					this.getZoneName(quest.questSortID) : 
+					this.getProfessionName(quest.questSortID);
+
+				if (!categories[category]) {
+					categories[category] = [];
+				}
+
+				const existingQuest = categories[category].find(q => q.id === quest.id);
+				if (existingQuest) {
+					existingQuest[source] = quest.status;
+				} else {
+					categories[category].push({
+						id: quest.id,
+						title: quest.title,
+						questLevel: quest.questLevel,
+						[source]: quest.status
+					});
+				}
+			});
+		};
+
+		addQuestsToCategories(charQuests, 'char1Status');
+		addQuestsToCategories(otherQuests, 'char2Status');
+
+		// Get list of all characters
+		const allCharacters = await this.getAllCharacters(realm.name);
+
+		res.render("character-quests-compare.hbs", {
+			title: `Armory - Quest Compare - ${charData.name} vs ${otherCharData.name}`,
+			...this.makeSharedDataObject(realm, charData),
+			data: {
+				categories: categories,
+				char1: {
+					name: charData.name,
+					realm: realm.name
+				},
+				char2: {
+					name: otherCharData.name,
+					realm: otherRealm.name
+				},
+				otherCharacters: allCharacters.filter(c => c.guid !== charData.guid)
 			},
 		});
 	}
@@ -1484,5 +1568,18 @@ export class CharacterController {
 			row.emblem = Utils.makeEmblemObject(row, false);
 			return row;
 		});
+	}
+
+	private async getAllCharacters(currentRealm: string): Promise<Array<{name: string, realmName: string, guid: number}>> {
+		const [rows] = await this.armory.getCharactersDb(currentRealm).query({
+			sql: 'SELECT name, guid FROM characters WHERE level > 1 order by name asc',
+			timeout: this.armory.config.dbQueryTimeout,
+		});
+
+		return (rows as RowDataPacket[]).map(row => ({
+			name: row.name,
+			guid: row.guid,
+			realmName: currentRealm
+		}));
 	}
 }

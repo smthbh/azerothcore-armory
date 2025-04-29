@@ -106,6 +106,13 @@ export class Armory {
 					},
 					hasInProgressQuests: function(quests: any[]) {
 						return quests.some(quest => quest.status === 'In Progress');
+					},
+					getDiffClass: function(quest: any) {
+						if (!quest.char1Status && !quest.char2Status) return '';
+						if (!quest.char1Status) return 'quest-missing-1';
+						if (!quest.char2Status) return 'quest-missing-2';
+						if (quest.char1Status !== quest.char2Status) return 'quest-diff';
+						return '';
 					}
 				},
 			}),
@@ -162,6 +169,7 @@ export class Armory {
 		app.get("/character/:realm/:name/pvp", this.wrapRoute(charsController.pvp.bind(charsController)));
 		app.get("/character/:realm/:name/reputation", this.wrapRoute(charsController.reputation.bind(charsController)));
 		app.get("/character/:realm/:name/quests", this.wrapRoute(charsController.quests.bind(charsController)));
+		app.get("/character/:realm/:name/quests/compare/:otherRealm/:otherName", this.wrapRoute(charsController.questsCompare.bind(charsController)));
 
 		const guildsController = new GuildController(this);
 		app.get("/guild/:realm/:name", this.wrapRoute(guildsController.guild.bind(guildsController)));

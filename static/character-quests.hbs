@@ -6,6 +6,33 @@
 
 {{> character-header }}
 
+<div class="quest-compare-section" style="margin-bottom: 20px;">
+    <div class="field is-horizontal">
+        <div class="field-label is-normal">
+            <label class="label">Compare with:</label>
+        </div>
+        <div class="field-body">
+            <div class="field has-addons">
+                <div class="control is-expanded">
+                    <div class="select is-fullwidth">
+                        <select id="compareCharacter">
+                            <option value="">Select a character...</option>
+                            {{#each data.otherCharacters}}
+                            <option value="{{this.realmName}}/{{this.name}}">{{this.name}} ({{this.realmName}})</option>
+                            {{/each}}
+                        </select>
+                    </div>
+                </div>
+                <div class="control">
+                    <button class="button is-info" id="compareButton" disabled>
+                        Compare Quests
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 {{#each data.categories as |quests category|}}
 <div class="quests-table" style="margin-bottom: 20px;">
     {{#if (hasInProgressQuests quests)}}
@@ -92,6 +119,23 @@ document.addEventListener('DOMContentLoaded', function() {
             content.classList.toggle('expanded');
             this.classList.toggle('expanded');
         });
+    });
+
+    const compareSelect = document.getElementById('compareCharacter');
+    const compareButton = document.getElementById('compareButton');
+
+    compareSelect.addEventListener('change', function() {
+        compareButton.disabled = !this.value;
+    });
+
+    compareButton.addEventListener('click', function() {
+        const selected = compareSelect.value;
+        if (selected) {
+            const [realm, name] = selected.split('/');
+            const sanitizedRealm = encodeURIComponent(realm);
+            const sanitizedName = encodeURIComponent(name);
+            window.location.href = `${window.location.pathname}/compare/${sanitizedRealm}/${sanitizedName}`;
+        }
     });
 });
 </script>
