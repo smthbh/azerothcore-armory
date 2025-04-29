@@ -427,8 +427,17 @@ export class CharacterController {
 		const otherQuests = await this.getQuests(otherRealm.name, otherCharData.guid);
 
 		// Group quests by category
-		const categories: { [key: string]: any[] } = {};
-		const addQuestsToCategories = (quests: any[], source: string) => {
+		interface IQuestComparison {
+			id: number;
+			title: string;
+			questLevel: number;
+			char1Status?: 'Completed' | 'In Progress';
+			char2Status?: 'Completed' | 'In Progress';
+		}
+
+		const categories: { [key: string]: IQuestComparison[] } = {};
+
+		const addQuestsToCategories = (quests: IQuest[], source: 'char1Status' | 'char2Status') => {
 			quests.forEach(quest => {
 				const category = quest.questSortID > 0 ? 
 					this.getZoneName(quest.questSortID) : 
@@ -446,7 +455,7 @@ export class CharacterController {
 						id: quest.id,
 						title: quest.title,
 						questLevel: quest.questLevel,
-						[source]: quest.status,
+						[source]: quest.status
 					});
 				}
 			});
