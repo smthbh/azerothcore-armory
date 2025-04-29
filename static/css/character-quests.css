@@ -149,3 +149,12 @@ tr.quest-missing-2 td:nth-child(4) {
     margin-left: 10px;
     font-weight: normal;
 }
+
+.quest-status.In.Progress {
+    color: #4CAF50;
+    font-weight: bold;
+}
+
+.quest-category {
+    font-style: italic;
+}

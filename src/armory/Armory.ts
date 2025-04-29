@@ -14,6 +14,7 @@ import { IndexController } from "./controllers/IndexController";
 import { CharacterController } from "./controllers/CharacterController";
 import { GuildController } from "./controllers/GuildController";
 import { ArenaController } from "./controllers/ArenaController";
+import { IQuest, IQuestComparison } from './types/QuestTypes';
 
 export class Armory {
 	public characterCustomization: CharacterCustomization;
@@ -102,26 +103,44 @@ export class Armory {
 				helpers: {
 					// eslint-disable-next-line @typescript-eslint/no-var-requires
 					...require("handlebars-helpers")(),
-					eq: function(a: any, b: any) {
-						return a === b;
-					},
-					hasInProgressQuests: function(quests: any[]) {
+					hasInProgressQuests: function(quests: IQuest[]): boolean {
 						return quests.some(quest => quest.status === 'In Progress');
 					},
-					getDiffClass: function(quest: any) {
+					getDiffClass: function(quest: IQuestComparison): string {
 						if (!quest.char1Status && !quest.char2Status) return '';
 						if (!quest.char1Status) return 'quest-missing-1';
 						if (!quest.char2Status) return 'quest-missing-2';
 						if (quest.char1Status !== quest.char2Status) return 'quest-diff';
 						return '';
 					},
-					getDiffCount: function(quests: any[]): number {
+					getDiffCount: function(quests: IQuestComparison[]): number {
 						return quests.reduce((count, quest) => {
 							if (!quest.char1Status && quest.char2Status) return count + 1;
 							if (quest.char1Status && !quest.char2Status) return count + 1;
 							if (quest.char1Status !== quest.char2Status) return count + 1;
 							return count;
 						}, 0);
+					},
+					getActiveQuests: function(categories: { [key: string]: IQuestComparison[] }): (IQuestComparison & { category: string })[] {
+						const activeQuests: (IQuestComparison & { category: string })[] = [];
+						Object.entries(categories).forEach(([category, quests]) => {
+							quests.forEach(quest => {
+								if (quest.char1Status === 'In Progress' || quest.char2Status === 'In Progress') {
+									activeQuests.push({
+										...quest,
+										category
+									});
+								}
+							});
+						});
+						return activeQuests.sort((a, b) => {
+							// First sort by category
+							const categoryCompare = a.category.localeCompare(b.category);
+							if (categoryCompare !== 0) return categoryCompare;
+							
+							// Then by title within same category
+							return a.title.localeCompare(b.title);
+						});
 					}
 				},
 			}),

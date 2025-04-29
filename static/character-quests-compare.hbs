@@ -63,6 +63,39 @@
     </div>
 </div>
 
+{{! Add this section before the categories loop }}
+<div class="quests-table" style="margin-bottom: 20px;">
+    <h2 class="is-size-4 category-header collapsible expanded">
+        Active Quests
+        <span class="collapse-icon">▼</span>
+    </h2>
+    
+    <div class="category-content expanded">
+        <table class="table is-striped is-hoverable is-fullwidth">
+            <thead>
+                <tr>
+                    <th>Quest</th>
+                    <th>Area (Level)</th>
+                    <th>{{data.char1.name}}</th>
+                    <th>{{data.char2.name}}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each (getActiveQuests data.categories)}}
+                <tr class="{{getDiffClass this}}">
+                    <td class="quest-name">
+                        <a href="{{@root.wowhead}}/quest={{this.id}}">{{this.title}}</a>
+                    </td>
+                    <td class="quest-level">{{this.category}} ({{this.questLevel}})</td>
+                    <td class="quest-status {{this.char1Status}}">{{this.char1Status}}</td>
+                    <td class="quest-status {{this.char2Status}}">{{this.char2Status}}</td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+    </div>
+</div>
+
 {{#each data.categories as |quests category|}}
 <div class="quests-table" style="margin-bottom: 20px;">
     <h2 class="is-size-4 category-header collapsible">
