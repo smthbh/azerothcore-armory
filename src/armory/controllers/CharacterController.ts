@@ -21,6 +21,11 @@ interface ICharacterData {
 	playerFlags: number;
 	online: number;
 	guild: string;
+	map: number;
+	zone: number;
+	zoneName: string;
+	position_x: number;
+	position_y: number;
 }
 
 interface IEquipmentData {
@@ -782,6 +787,8 @@ export class CharacterController {
 			level: charData.level,
 			online: charData.online === 1,
 			guild: charData.guild,
+			zone: charData.zone,
+			zoneName: this.getZoneName(charData.zone),
 		};
 	}
 
@@ -789,7 +796,7 @@ export class CharacterController {
 		const where = typeof character === "string" ? "LOWER(`characters`.`name`) = LOWER(?)" : "`characters`.`guid` = ?";
 		const [rows] = await this.armory.getCharactersDb(realm.name).query({
 			sql: `
-				SELECT \`characters\`.\`guid\`, \`characters\`.\`name\`, \`race\`, \`class\`, \`gender\`, \`level\`, \`skin\`, \`face\`, \`hairStyle\`, \`hairColor\`, \`facialStyle\`, \`playerFlags\`, \`online\`, \`guild\`.\`name\` AS \`guild\`
+				SELECT \`characters\`.\`guid\`, \`characters\`.\`name\`, \`race\`, \`class\`, \`gender\`, \`level\`, \`skin\`, \`face\`, \`hairStyle\`, \`hairColor\`, \`facialStyle\`, \`playerFlags\`, \`online\`, \`map\`, \`zone\`, \`position_x\`, \`position_y\`, \`guild\`.\`name\` AS \`guild\`
 				FROM \`characters\`
 				LEFT JOIN \`guild_member\` ON \`guild_member\`.\`guid\` = \`characters\`.\`guid\`
 				LEFT JOIN \`guild\` ON \`guild\`.\`guildid\` = \`guild_member\`.\`guildid\`
