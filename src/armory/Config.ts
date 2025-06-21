@@ -24,9 +24,9 @@ export interface IIframeModeConfig {
 }
 
 export interface IFeatureFlags {
-    enableQuestsPage: boolean;
-    enableReputationPage: boolean;
-    enableSkillsPage: boolean;
+	enableQuestsPage: boolean;
+	enableReputationPage: boolean;
+	enableSkillsPage: boolean;
 }
 
 export class Config {
