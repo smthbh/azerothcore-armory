@@ -789,6 +789,9 @@ export class CharacterController {
 			guild: charData.guild,
 			zone: charData.zone,
 			zoneName: this.getZoneName(charData.zone),
+			enableQuestsPage: this.armory.config.featureFlags.enableQuestsPage,
+			enableSkillsPage: this.armory.config.featureFlags.enableSkillsPage,
+			enableReputationPage: this.armory.config.featureFlags.enableReputationPage
 		};
 	}
 
