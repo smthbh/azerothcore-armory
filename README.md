@@ -73,6 +73,10 @@ I also noticed that such a tool was frequently requested in the AzerothCore Disc
 ![Character page](readme/img/cayla.png)
 ![Character talents](readme/img/talents.png)
 ![Character achievements](readme/img/achievements.png)
+![Character quests](readme/img/armory-quests.png)
+![Character quest compare](readme/img/armory-questcompare.png)
+![Character skills](readme/img/armory-skills.png)
+![Character reputation](readme/img/armory-rep.png)
 ![Guild page](readme/img/guild.png)
 </details>
 
