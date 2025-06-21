@@ -33,5 +33,10 @@
 		"password": "acore",
 		"database": "acore_world"
 	},
-	"dbQueryTimeout": 10000
+	"dbQueryTimeout": 10000,
+	"featureFlags": {
+		"enableQuestsPage": true,
+		"enableReputationPage": true,
+		"enableSkillsPage": true
+	}
 }

@@ -191,13 +191,19 @@ export class Armory {
 		await charsController.load();
 		app.get("/character/:realm/:name", this.wrapRoute(charsController.character.bind(charsController)));
 		app.get("/character/:realm/:name/talents", this.wrapRoute(charsController.talents.bind(charsController)));
-		app.get("/character/:realm/:name/skills", this.wrapRoute(charsController.skills.bind(charsController)));
+		if (this.config.featureFlags.enableSkillsPage) {
+			app.get("/character/:realm/:name/skills", this.wrapRoute(charsController.skills.bind(charsController)));
+		}
 		app.get("/character/:realm/:name/achievements", this.wrapRoute(charsController.achievements.bind(charsController)));
 		app.get("/character/:realm/:character/achievements/data", this.wrapRoute(charsController.achievementsData.bind(charsController)));
 		app.get("/character/:realm/:name/pvp", this.wrapRoute(charsController.pvp.bind(charsController)));
-		app.get("/character/:realm/:name/reputation", this.wrapRoute(charsController.reputation.bind(charsController)));
-		app.get("/character/:realm/:name/quests", this.wrapRoute(charsController.quests.bind(charsController)));
-		app.get("/character/:realm/:name/quests/compare/:otherRealm/:otherName", this.wrapRoute(charsController.questsCompare.bind(charsController)));
+		if (this.config.featureFlags.enableReputationPage) {
+			app.get("/character/:realm/:name/reputation", this.wrapRoute(charsController.reputation.bind(charsController)));
+		}
+		if (this.config.featureFlags.enableQuestsPage) {
+			app.get("/character/:realm/:name/quests", this.wrapRoute(charsController.quests.bind(charsController)));
+			app.get("/character/:realm/:name/quests/compare/:otherRealm/:otherName", this.wrapRoute(charsController.questsCompare.bind(charsController)));
+		}
 
 		const guildsController = new GuildController(this);
 		app.get("/guild/:realm/:name", this.wrapRoute(guildsController.guild.bind(guildsController)));
