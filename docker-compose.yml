@@ -17,3 +17,6 @@ services:
 networks:
     local-private-net:
         driver: bridge
+    ac-network:
+        name: ${DOCKER_AC_NETWORK_NAME:-azerothcore-wotlk_ac-network} # default network name if you use the docker setup of ac
+        external: ${DOCKER_AC_NETWORK_EXTERNAL:-false}
